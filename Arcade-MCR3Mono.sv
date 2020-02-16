@@ -178,7 +178,7 @@ wire  [7:0] ioctl_index;
 
 wire [10:0] ps2_key;
 
-
+wire [15:0] joy1_USB, joy2_USB, joy3_USB, joy4_USB;
 wire [15:0] joy1 = |status[31:30] ? {
  	joydb9md_1[8] | joydb9md_1[11] | (joydb9md_1[7] & joydb9md_1[6]),// Mode | Z | Start + A -> Coin 
 	joydb9md_1[7], // S start 1
@@ -190,9 +190,7 @@ wire [15:0] joy1 = |status[31:30] ? {
 	joydb9md_1[2], // D
 	joydb9md_1[1], // L
 	joydb9md_1[0]  // R
-	} 
-	: joy1_USB;
-
+	}: joy1_USB;
 wire [15:0] joy2 =  status[31]    ? {
  	joydb9md_2[8] | joydb9md_2[11] | (joydb9md_2[7] & joydb9md_2[6]),// Mode | Z | Start + A -> Coin 
 	joydb9md_2[7], // S start 2
@@ -206,13 +204,13 @@ wire [15:0] joy2 =  status[31]    ? {
 	joydb9md_2[0]  // R
 	} 
 	: status[30] ? joy1_USB : joy2_USB;
+wire [15:0] joy3 =  status[31] ? joy1_USB : status[30] ? joy2_USB : joy3_USB;
+wire [15:0] joy4 =  status[31] ? joy2_USB : status[30] ? joy3_USB : joy4_USB;
 
-wire [15:0] joy3, joy4;
 wire [15:0] joy = joy1 | joy2 | joy3 | joy4;
 wire [15:0] joy1a, joy2a, joy3a, joy4a;
 
 wire [21:0] gamma_bus;
-wire [15:0] joy1_USB, joy2_USB;
 
 reg [15:0] joydb9md_1,joydb9md_2;
 joy_db9md joy_db9md
@@ -248,8 +246,8 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 
 	.joystick_0(joy1_USB),
 	.joystick_1(joy2_USB),
-	.joystick_2(joy3),
-	.joystick_3(joy4),
+	.joystick_2(joy3_USB),
+	.joystick_3(joy4_USB),
 
 	.joystick_analog_0(joy1a),
 	.joystick_analog_1(joy2a),
