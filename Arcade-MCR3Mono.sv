@@ -95,8 +95,9 @@ module emu
 	// 1 - D-/TX
 	// 2..6 - USR2..USR6
 	// Set USER_OUT to 1 to read from USER_IN.
-	output	      USER_MODE,
-	input   [7:0] USER_IN,
+output	USER_OSD,
+output	USER_MODE,
+input   [7:0] USER_IN,
 	output  [7:0] USER_OUT
 );
 
@@ -107,6 +108,7 @@ wire   joy_split, joy_mdsel;
 wire   [5:0] joy_in = {USER_IN[6],USER_IN[3],USER_IN[5],USER_IN[7],USER_IN[1],USER_IN[2]};
 assign USER_OUT  = |status[31:30] ? {3'b111,joy_split,3'b111,joy_mdsel} : '1;
 assign USER_MODE = |status[31:30] ;
+assign USER_OSD  = joydb9md_1[7] & joydb9md_1[5];
 
 assign LED_USER  = ioctl_download;
 
@@ -180,24 +182,24 @@ wire [10:0] ps2_key;
 
 wire [31:0] joy1_USB, joy2_USB, joy3_USB, joy4_USB;
 wire [31:0] joy1 = |status[31:30] ? {
- 	joydb9md_1[8] | joydb9md_1[11] | (joydb9md_1[7] & joydb9md_1[6]),// Mode | Z | Start + A -> Coin 
+ 	joydb9md_1[8] | joydb9md_1[11] | (joydb9md_1[7] & joydb9md_1[4]),// Mode | Z | Start + B -> Coin 
 	joydb9md_1[7], // S start 1
-	joydb9md_1[9], // Y fire d
-	joydb9md_1[10],// X fire c
-	joydb9md_1[5], // C fire b
-	joydb9md_1[4], // B fire a
+	joydb9md_1[9], // X fire d
+	joydb9md_1[5], // C fire c
+	joydb9md_1[4], // B fire b
+	joydb9md_1[6], // A fire a
 	joydb9md_1[3], // U
 	joydb9md_1[2], // D
 	joydb9md_1[1], // L
 	joydb9md_1[0]  // R
 	}: joy1_USB;
 wire [31:0] joy2 =  status[31]    ? {
- 	joydb9md_2[8] | joydb9md_2[11] | (joydb9md_2[7] & joydb9md_2[6]),// Mode | Z | Start + A -> Coin 
+ 	joydb9md_2[8] | joydb9md_2[11] | (joydb9md_2[7] & joydb9md_2[4]),// Mode | Z | Start + B -> Coin 
 	joydb9md_2[7], // S start 2
-	joydb9md_2[9], // Y fire d
-	joydb9md_2[10],// X fire c
-	joydb9md_2[5], // C fire b
-	joydb9md_2[4], // B fire a
+	joydb9md_2[9], // X fire d
+	joydb9md_2[5], // C fire c
+	joydb9md_2[4], // B fire b
+	joydb9md_2[6], // A fire a
 	joydb9md_2[3], // U
 	joydb9md_2[2], // D
 	joydb9md_2[1], // L
@@ -254,7 +256,8 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 	.joystick_analog_2(joy3a),
 	.joystick_analog_3(joy4a),
 
-	.ps2_key(ps2_key)
+	.joy_raw(joydb9md_1[5:0]),
+.ps2_key(ps2_key)
 );
 
 reg mod_rampage    = 0;
