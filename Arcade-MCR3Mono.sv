@@ -191,11 +191,13 @@ wire        forced_scandoubler;
 wire        direct_video;
 
 wire        ioctl_download;
+wire        ioctl_upload;
 wire        ioctl_wr;
 wire [24:0] ioctl_addr;
 wire  [7:0] ioctl_dout;
+wire  [7:0] ioctl_din;
 wire  [7:0] ioctl_index;
-
+wire        ioctl_wait;
 
 wire [31:0] joy1_USB, joy2_USB, joy3_USB, joy4_USB;
 wire [31:0] joy = joy1 | joy2 | joy3 | joy4;
@@ -257,10 +259,13 @@ hps_io #(.STRLEN($size(CONF_STR)>>3)) hps_io
 	.direct_video(direct_video),
 
 	.ioctl_download(ioctl_download),
+	.ioctl_upload(ioctl_upload),
 	.ioctl_wr(ioctl_wr),
 	.ioctl_addr(ioctl_addr),
 	.ioctl_dout(ioctl_dout),
+	.ioctl_din(ioctl_din),
 	.ioctl_index(ioctl_index),
+	.ioctl_wait(ioctl_wait),
 
 	.joystick_0(joy1_USB),
 	.joystick_1(joy2_USB),
@@ -438,6 +443,8 @@ reg  [23:0] port2_a;
 reg  [19:0] snd_offset;
 reg  [19:0] gfx1_offset;
 
+wire [24:0] dl_addr = ioctl_addr-gfx1_offset;
+
 always @(*) begin
 	if (sg) begin
 		snd_offset  = 20'h60000;
@@ -568,9 +575,12 @@ mcr3mono mcr3mono (
 	.sp_addr      ( sp_addr  ),
 	.sp_graphx32_do ( sp_do  ),
 
-	.dl_addr(ioctl_addr-gfx1_offset),
+	.dl_addr(dl_addr),
+	.dl_wr(ioctl_wr & rom_download),
 	.dl_data(ioctl_dout),
-	.dl_wr(ioctl_wr && !ioctl_index)
+	.dl_nvram_wr(ioctl_wr & (ioctl_index=='d4)), 
+	.dl_din(ioctl_din),
+	.dl_nvram(ioctl_index=='d4)
 );
 
 wire HBlank, VBlank;
